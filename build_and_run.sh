@@ -1,10 +1,16 @@
 #!/bin/bash
 
 # Switch to Release build (can be changed to Debug)
-BUILD_TYPE="Debug" # Or "Debug"
+BUILD_TYPE="Release"
+BUILD_TESTS="OFF"
+
+read -p "Do you want to build the tests? (yes/no): " build_tests_answer
+if [[ "$build_tests_answer" == "yes" ]]; then
+    BUILD_TESTS="ON"
+fi
 
 # Configure CMake build directory
-if ! cmake -B build -S . -DCMAKE_BUILD_TYPE="$BUILD_TYPE"; then
+if ! cmake -B build -S . -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCMAKE_BUILD_TEST="$BUILD_TESTS"; then
     echo "Error during CMake configuration"
     exit 1
 fi
@@ -15,7 +21,7 @@ if ! cmake --build build --config "$BUILD_TYPE"; then
     exit 1
 fi
 
-# Clean note.txt for Logger
+# Clean note.txt for JournalUtility
 > note.txt
 
 # Function to open a new terminal and run a command inside it
@@ -30,7 +36,7 @@ RunInTerminal() {
         keep_terminal_command="; exec bash" # Append command to start a new bash shell after the command finishes
     fi
 
-    # Try to find and use different terminal emulators in order of preference
+    # Try to find and use different terminal emulators
     if command -v x-terminal-emulator >/dev/null 2>&1; then
         x-terminal-emulator -e "bash -c '$command${keep_terminal_command}'" &
     elif command -v gnome-terminal >/dev/null 2>&1; then
@@ -46,6 +52,18 @@ RunInTerminal() {
     fi
 }
 
-RunInTerminal "./build/Server" "keep"
-RunInTerminal "./build/JournalUtility note.txt"
-RunInTerminal "./build/Client"
+read -p "Do you want to run tests? (yes/no): " run_tests_answer
+if [[ "$run_tests_answer" == "yes" ]]; then
+    if [ -d "build/test" ]; then
+        find build/test -type f -executable | while read -r test_executable; do
+            echo "Running test: $test_executable"
+            "$test_executable"
+        done
+    else
+        echo "Test directory does not exist. No tests to run."
+    fi
+fi
+
+RunInTerminal "./build/server/server '127.0.0.1' 5 8080 1048576 /tmp/sockjournal" "keep"
+RunInTerminal "./build/server/journal_utility /tmp/sockjournal note.txt" "keep"
+RunInTerminal "./build/client/client '127.0.0.1' nfuzz 1 8080 1 200" "keep"

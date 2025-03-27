@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-The project comprises three main components: a **Server**, a **Client**, and a **Logger (Journal Utility)**.
+The project comprises three main components: a **Server**, a **Client**, and a **JournalUtility**.
 
-The core objective is to create an application suite capable of monitoring the CPU usage of processes on a server and logging these monitoring activities. The Server component listens for requests on UDP ports, processes these requests by calculating CPU usage, and logs each request and its result. The Client is designed to interact with the Server in two distinct modes, and the Logger utility is responsible for persisting the Server's operational journal to a file.
+The core objective is to create an application suite capable of monitoring the CPU usage of processes on a server and logging these monitoring activities. The Server component listens for requests on UDP ports, processes these requests by calculating CPU usage, and logs each request and its result. The Client is designed to interact with the Server in two distinct modes, and the JournalUtility utility is responsible for persisting the Server's operational journal to a file.
 
 This project is intended for **Linux** environments.
 
@@ -55,62 +55,13 @@ The Client application facilitates interaction with the Server and offers two di
     *   **Action:** Initiates a "fuzzing" process by continuously sending monitoring requests (for a set of predefined or generated PIDs, or simply iterating through PIDs) to **all ports within the specified range on the Server, without any delay**. This mode is intended for stress-testing or quickly sending multiple requests.
     *   **Stopping Condition:** The "fuzzing" mode continues indefinitely until manually stopped by the user, typically by sending a termination signal (e.g., using `kill` command or `Ctrl+C`).
 
-### 3. Journal Utility (Logger)
+### 3. Journal Utility
 
 The Journal Utility is a standalone program designed to persist the Server's in-memory journal to a file for record-keeping and analysis.
 
-**Functionality:**
-
-*   **Command-Line Interface:** Operates via the command line and accepts a single argument: the **filename** where the journal content should be saved.
-*   **Local Execution:** Must be executed on the **same machine** where the Server application is running, as it needs to access the shared memory journal of the Server.
-*   **Journal Persistence:**  When executed, it reads the current content of the Server's shared memory journal and **writes this content to the specified file**, effectively creating a log file of server activities.
-
-## Building the Project
-
-This project utilizes CMake as its build system. Follow these steps to compile the project:
-
-1.  **Create a dedicated build directory:**
-    ```bash
-    mkdir build
-    cd build
-    ```
-
-2.  **Configure the build using CMake:**
-    CMake configuration prepares the build environment based on your system and chosen settings.
-
-    *   **Debug Build (Recommended for Development):**
-        This build type includes debugging symbols and disables optimizations, making it easier to debug during development.
-        ```bash
-        cmake -S .. -B . -DCMAKE_BUILD_TYPE=Debug
-        ```
-    *   **Release Build (Recommended for Deployment):**
-        This build type enables compiler optimizations for better performance and strips debugging symbols, suitable for final deployment.
-        ```bash
-        cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
-        ```
-
-3.  **Compile the project:**
-    Execute the CMake build command to compile the source code into executables.
-
-    ```bash
-    cmake --build . --config <Debug|Release>
-    ```
-    Replace `<Debug|Release>` with the build type you configured in the previous step (e.g., `Debug` or `Release`). For a Release build, the command would be:
-    ```bash
-    cmake --build . --config Release
-    ```
-
-    Alternatively, on Unix-like systems where CMake might default to the `Unix Makefiles` generator, you can use `make` for compilation:
-    ```bash
-    make -j<number_of_cores> # Example: make -j4 to use 4 CPU cores for faster compilation (optional)
-    ```
-    Replace `<number_of_cores>` with the number of CPU cores you wish to utilize for parallel compilation. This step is optional but can significantly reduce build times on multi-core processors.
-
-After successful compilation, the executable files (`Server`, `Client`, `Logger`) will be located within the `build` directory.
-
 ## Running the Applications
 
-To simplify the process of running the Server, Client, and Logger, use `build_and_run.sh`.
+To simplify the process of running the Server, Client, and JournalUtility, use `build_and_run.sh`.
 
 1.  **Using `build_and_run.sh`:**
     This script combines the build process with running the applications. It first builds the project and then runs the executables in separate terminals.
@@ -122,37 +73,20 @@ To simplify the process of running the Server, Client, and Logger, use `build_an
     The `build_and_run.sh` script will:
     *   **Clean and rebuild the project** using CMake (Debug build by default, configurable in the script).
     *   Clean the `note.txt` file.
-    *   Open three new terminal windows and execute the Server, Client, and Logger applications.
+    *   Open three new terminal windows and execute the Server, Client, and JournalUtility applications.
 
 ### Customizing Terminal Behavior in `build_and_run.sh`
 
 Both scripts utilize the `RunInTerminal()` function to launch applications in new terminals. You can customize whether a terminal window remains open after the application finishes by using an optional second argument `"keep"` with the `RunInTerminal()` function call within these scripts.
 
-*   **Keep terminal open:**
-    ```bash
-    RunInTerminal "<command>" "keep"
-    ```
-*   **Close terminal automatically (default):**
-    ```bash
-    RunInTerminal "<command>"
-    ```
-
-    Examine the `build_and_run.sh` script to see examples of how this parameter is used for each application (Server, Client, Logger). You can modify these scripts to change the default terminal behavior as needed.
-
 ## Files Included
 
-*   **`Server.c`:** C source code for the UDP Server application.
-*   **`Client.c`:** C source code for the UDP Client application.
-*   **`Logger.c`:** C source code for the Logger application (Journal Utility).
-*   **`Utils.h`:** Header file intended for shared utility functions and definitions.
+*   **`server/server.c`:** C source code for the UDP Server application.
+*   **`client/client.c`:** C source code for the UDP Client application.
+*   **`server/journal_utility.c`:** C source code for the JournalUtility application.
 *   **`CMakeLists.txt`:** CMake build configuration file for the entire project.
-*   **`run_script.sh`:** Bash script to run pre-built Server, Client, and Logger in separate terminals.
-*   **`build_and_run.sh`:** Bash script to build the project and then run Server, Client, and Logger in separate terminals.
-*   **`note.txt`:** Text file used by the Logger application to store the server journal.
-*   **`cmake/`:** Directory containing custom CMake modules:
-    *   `CCache.cmake`:  Module for enabling and configuring CCache to speed up builds.
-    *   `Format.cmake`: Placeholder for a module to integrate code formatting tools (user-defined implementation expected).
-    *   `Memcheck.cmake`: Placeholder for a module to integrate memory checking tools (user-defined implementation expected).
+*   **`build_and_run.sh`:** Bash script to build the project and then run Server, Client, and JournalUtility in separate terminals.
+*   **`cmake/`:** Directory containing custom CMake modules.
 
 ## Dependencies
 

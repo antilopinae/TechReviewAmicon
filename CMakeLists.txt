@@ -6,43 +6,22 @@ include(CCache)
 
 project(TechTask VERSION 1.0.0 LANGUAGES C)
 
-enable_testing()
-
-# set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-# set(CMAKE_HAVE_THREADS_LIBRARY 1)
-# set(CMAKE_USE_WIN32_THREADS_INIT 0)
-# set(CMAKE_USE_PTHREADS_INIT 1)
-# set(THREADS_PREFER_PTHREAD_FLAG ON)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
-add_executable(Server Server.c)
-add_executable(Client Client.c)
-add_executable(JournalUtility Logger.c)
+add_subdirectory(utility)
 
-target_compile_options(Server PRIVATE -Wall -Wextra -Wpedantic)
-target_compile_options(Client PRIVATE -Wall -Wextra -Wpedantic)
-target_compile_options(JournalUtility PRIVATE -Wall -Wextra -Wpedantic)
+add_subdirectory(network)
+add_subdirectory(server)
+add_subdirectory(client)
 
 message(STATUS "BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
-target_compile_definitions(Server PRIVATE $<$<CONFIG:Debug>:DEBUG>)
-target_compile_definitions(Client PRIVATE $<$<CONFIG:Debug>:DEBUG>)
-target_compile_definitions(JournalUtility PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+# set(CMAKE_BUILD_TEST ON)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    include(Format)
-    include(Memcheck)
-
-    Format(Server ${CMAKE_CURRENT_LIST_DIR})
-    Format(Client ${CMAKE_CURRENT_LIST_DIR})
-    Format(JournalUtility ${CMAKE_CURRENT_LIST_DIR})
-
-    AddMemcheck(Server)
-    AddMemcheck(Client)
-    AddMemcheck(JournalUtility)
+if(CMAKE_BUILD_TEST STREQUAL "ON")
+    add_subdirectory(test)
 endif()
 
-install(TARGETS Server Client JournalUtility
+install(TARGETS server client journal_utility
     RUNTIME DESTINATION bin
 )
