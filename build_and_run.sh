@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Switch to Release build (can be changed to Debug)
-BUILD_TYPE="Debug" # Or "Debug"
+BUILD_TYPE="Debug"
+BUILD_WITH_MEMCHECK="OFF" # ON/OFF
 
 # Configure CMake build directory
 if ! cmake -B build -S . -DCMAKE_BUILD_TYPE="$BUILD_TYPE"; then
@@ -9,13 +10,19 @@ if ! cmake -B build -S . -DCMAKE_BUILD_TYPE="$BUILD_TYPE"; then
     exit 1
 fi
 
+# Set CMake options for auto memcheck-cover to all targets
+memcheck_command=""
+if [ "BUILD_WITH_MEMCHECK" = "ON" ]; then
+    memcheck_command="--target memcheck-Server --target memcheck-Client --target memcheck-JournalUtility"
+fi
+
 # Build the project using CMake
-if ! cmake --build build --config "$BUILD_TYPE"; then
+if ! cmake --build build --config "$BUILD_TYPE" $memcheck_command; then
     echo "Error during CMake build"
     exit 1
 fi
 
-# Clean note.txt for Logger
+# Clean note.txt for JournalUtility
 > note.txt
 
 # Function to open a new terminal and run a command inside it
@@ -30,7 +37,7 @@ RunInTerminal() {
         keep_terminal_command="; exec bash" # Append command to start a new bash shell after the command finishes
     fi
 
-    # Try to find and use different terminal emulators in order of preference
+    # Try to find and use different terminal emulators
     if command -v x-terminal-emulator >/dev/null 2>&1; then
         x-terminal-emulator -e "bash -c '$command${keep_terminal_command}'" &
     elif command -v gnome-terminal >/dev/null 2>&1; then
