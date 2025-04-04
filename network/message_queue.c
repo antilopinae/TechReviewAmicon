@@ -117,7 +117,7 @@ message_queue_status_t message_queue_enqueue(message_queue_t* queue, message_t* 
         while (queue->head != (next_tail + queue->capacity / 2) % queue->capacity)
         {
             message_t* tmp = queue->buffer[queue->head];
-            SAFE_FREE(tmp);
+            message_delete(tmp);
             queue->head = (queue->head + 1) % queue->capacity;
         }
     }
